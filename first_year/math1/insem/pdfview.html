@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Viewer</title>
+<!-- Include PDF.js library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+<style>
+    #pdfViewer {
+        width: 100%;
+        border: 1px solid #ccc;
+    }
+</style>
+</head>
+<body>
+
+<div id="pdfViewer"></div>
+
+<script>
+// URL of the PDF document
+var pdfUrl = 'https://drive.google.com/file/d/1YxlJhFOa6dp5jZXy_OYqUhXJ_6fDC27P/view?usp=drive_link';
+
+// Asynchronous function to load and display PDF
+async function displayPDF() {
+    // Fetch the PDF document
+    const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+
+    // Get the total number of pages in the PDF
+    const numPages = pdf.numPages;
+
+    // Iterate through each page and render it
+    for (let i = 1; i <= numPages; i++) {
+        // Get the page
+        const page = await pdf.getPage(i);
+
+        // Set the scale for rendering the page
+        const scale = 1.5;
+
+        // Get the viewport of the page at the specified scale
+        const viewport = page.getViewport({ scale: scale });
+
+        // Create a canvas element to render the page
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        // Render the page to the canvas
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+        };
+        await page.render(renderContext).promise;
+
+        // Append the canvas to the PDF viewer container
+        const pdfViewer = document.getElementById('pdfViewer');
+        pdfViewer.appendChild(canvas);
+    }
+}
+
+// Call the function to display the PDF
+displayPDF();
+</script>
+
+</body>
+</html>

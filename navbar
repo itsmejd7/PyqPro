@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematics-I</title>
+    <style>
+        body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  .header {
+    background-color: white;
+    padding: 20px;
+    text-align: center;
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 15px;
+}
+
+.name {
+    color: black;
+    font-size: 1rem;
+    font-weight: bold;
+    padding: 0px 14px;
+    font-family: cursive;
+    
+
+
+}
+
+.nav-links {
+    display: flex;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    margin-right: 20px;
+}
+
+.nav-links a {
+    color: #7E22CE;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #ccc;
+}
+    </style>
+</head>
+<body>
+  <nav>
+    <div class="name">PYQPRO</div>
+    <ul class="nav-links">
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Products</a></li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">Contact</a></li>
+    </ul>
+  </nav>
+</body>
+</html>
