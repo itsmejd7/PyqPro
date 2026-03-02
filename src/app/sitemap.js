@@ -18,6 +18,12 @@ export default async function sitemap() {
     priority: 0.7
   }));
 
+  const subjectLandingUrls = [...new Set(subjects.map((item) => item.subjectSlug))].map((subjectSlug) => ({
+    url: `${base}/subject/${subjectSlug}`,
+    changeFrequency: "weekly",
+    priority: 0.75
+  }));
+
   return [
     {
       url: base,
@@ -25,6 +31,7 @@ export default async function sitemap() {
       priority: 1
     },
     ...branchUrls,
+    ...subjectLandingUrls,
     ...subjectUrls
   ];
 }

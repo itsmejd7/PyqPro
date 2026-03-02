@@ -106,3 +106,28 @@ export async function listSubjectPaths() {
     ])
     .toArray();
 }
+
+export async function getSubjectLandingBySlug(subjectSlug) {
+  const db = await getDb();
+  return db
+    .collection(pyqStructureCollectionName)
+    .aggregate([
+      { $unwind: "$patterns" },
+      { $unwind: "$patterns.subjects" },
+      { $match: { "patterns.subjects.subjectSlug": subjectSlug } },
+      {
+        $project: {
+          _id: 0,
+          branch: 1,
+          branchSlug: 1,
+          academicYear: 1,
+          pattern: "$patterns.pattern",
+          subject: "$patterns.subjects.subject",
+          subjectSlug: "$patterns.subjects.subjectSlug",
+          paperCount: "$patterns.subjects.paperCount"
+        }
+      },
+      { $sort: { branch: 1, academicYear: 1, pattern: 1 } }
+    ])
+    .toArray();
+}

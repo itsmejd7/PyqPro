@@ -2,8 +2,51 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { getYearStructure, listPapers } from "@/server/repositories/pyq";
+import { buildNotFoundMetadata, buildSubjectMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
+
+export async function generateMetadata({ params }) {
+  const { branch, academicYear, pattern, subject } = await params;
+  const normalizedYear = academicYear.toUpperCase();
+  const record = await getYearStructure(branch, normalizedYear);
+
+  if (!record) {
+    return buildNotFoundMetadata(`/${branch}/${normalizedYear}/${pattern}/${subject}`);
+  }
+
+  const patternEntry = record.patterns.find((entry) => entry.pattern === pattern);
+  if (!patternEntry) {
+    return buildNotFoundMetadata(`/${record.branchSlug}/${normalizedYear}/${pattern}/${subject}`);
+  }
+
+  const subjectEntry = patternEntry.subjects.find((entry) => entry.subjectSlug === subject);
+  if (!subjectEntry) {
+    return buildNotFoundMetadata(`/${record.branchSlug}/${normalizedYear}/${pattern}/${subject}`);
+  }
+
+  const papers = await listPapers({
+    branchSlug: record.branchSlug,
+    academicYear: normalizedYear,
+    pattern,
+    subjectSlug: subject
+  });
+  const paperYears = papers.map((paper) => paper.paperYear).filter(Boolean);
+  const latestPaperYear = paperYears.length ? Math.max(...paperYears) : undefined;
+  const earliestPaperYear = paperYears.length ? Math.min(...paperYears) : undefined;
+
+  return buildSubjectMetadata({
+    branchName: record.branch,
+    branchSlug: record.branchSlug,
+    academicYear: normalizedYear,
+    pattern,
+    subjectName: subjectEntry.subject,
+    subjectSlug: subjectEntry.subjectSlug,
+    paperCount: papers.length,
+    latestPaperYear,
+    earliestPaperYear
+  });
+}
 
 export default async function SubjectPage({ params }) {
   const { branch, academicYear, pattern, subject } = await params;

@@ -2,8 +2,33 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { Card } from "@/components/ui/card";
 import { getYearStructure } from "@/server/repositories/pyq";
+import { buildNotFoundMetadata, buildPatternMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
+
+export async function generateMetadata({ params }) {
+  const { branch, academicYear, pattern } = await params;
+  const normalizedYear = academicYear.toUpperCase();
+  const record = await getYearStructure(branch, normalizedYear);
+
+  if (!record) {
+    return buildNotFoundMetadata(`/${branch}/${normalizedYear}/${pattern}`);
+  }
+
+  const patternEntry = record.patterns.find((entry) => entry.pattern === pattern);
+  if (!patternEntry) {
+    return buildNotFoundMetadata(`/${record.branchSlug}/${normalizedYear}/${pattern}`);
+  }
+
+  return buildPatternMetadata({
+    branchName: record.branch,
+    branchSlug: record.branchSlug,
+    academicYear: normalizedYear,
+    pattern,
+    subjectCount: patternEntry.subjects.length,
+    paperCount: patternEntry.paperCount
+  });
+}
 
 export default async function PatternPage({ params }) {
   const { branch, academicYear, pattern } = await params;

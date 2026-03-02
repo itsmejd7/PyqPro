@@ -3,8 +3,38 @@ import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { Card } from "@/components/ui/card";
 import { getBranchStructure } from "@/server/repositories/pyq";
 import { formatSlug } from "@/lib/format";
+import { buildBranchMetadata, buildNotFoundMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
+
+export async function generateMetadata({ params }) {
+  const { branch } = await params;
+  const records = await getBranchStructure(branch);
+
+  if (!records.length) {
+    return buildNotFoundMetadata(`/${branch}`);
+  }
+
+  const years = [...new Set(records.map((record) => record.academicYear))];
+  const patternCount = records.reduce((count, record) => count + record.patterns.length, 0);
+  const subjectCount = records.reduce(
+    (count, record) => count + record.patterns.reduce((total, pattern) => total + pattern.subjects.length, 0),
+    0
+  );
+  const paperCount = records.reduce(
+    (count, record) => count + record.patterns.reduce((total, pattern) => total + pattern.paperCount, 0),
+    0
+  );
+
+  return buildBranchMetadata({
+    branchName: records[0].branch || formatSlug(branch),
+    branchSlug: records[0].branchSlug || branch,
+    years,
+    patternCount,
+    subjectCount,
+    paperCount
+  });
+}
 
 export default async function BranchPage({ params }) {
   const { branch } = await params;
