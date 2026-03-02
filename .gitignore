@@ -8,3 +8,4 @@ coverage
 .vercel
 *.log
 data/catalog/pdf-verification-report.csv
+master catalog
