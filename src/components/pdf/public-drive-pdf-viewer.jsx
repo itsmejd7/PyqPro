@@ -28,17 +28,20 @@ export function PublicDrivePdfViewer({ fileId }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="viewer-shell" onContextMenu={(event) => event.preventDefault()}>
+    <div
+      ref={containerRef}
+      className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      onContextMenu={(event) => event.preventDefault()}
+    >
       <Document
         file={apiUrl}
         onLoadSuccess={({ numPages: pages }) => setNumPages(pages)}
-        loading={<p>Loading PDF...</p>}
-        error={<p>Could not load PDF.</p>}
+        loading={<p className="text-base text-slate-500">Loading PDF...</p>}
+        error={<p className="text-base text-slate-500">Could not load PDF.</p>}
       >
         {Array.from({ length: numPages }, (_, index) => (
           <Page
             key={`page_${index + 1}`}
-            className="pdf-page"
             pageNumber={index + 1}
             width={pageWidth}
             renderTextLayer={false}

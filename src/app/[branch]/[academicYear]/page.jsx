@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { Card } from "@/components/ui/card";
 import { getYearStructure } from "@/server/repositories/pyq";
@@ -35,28 +36,30 @@ export default async function AcademicYearPage({ params }) {
   if (!record) notFound();
 
   return (
-    <section className="section page-shell">
-      <Breadcrumbs
-        crumbs={[
-          { label: "Home", href: "/" },
-          { label: record.branch, href: `/${record.branchSlug}` },
-          { label: academicYear.toUpperCase(), href: `/${record.branchSlug}/${academicYear.toUpperCase()}` }
-        ]}
-      />
-      <div className="section-head">
-        <h1>{record.branch}</h1>
-        <p>{academicYear.toUpperCase()} patterns.</p>
-      </div>
-      <div className="grid">
-        {record.patterns.map((entry) => (
-          <Card
-            key={entry.pattern}
-            title={`Pattern ${entry.pattern}`}
-            subtitle={entry.paperCount === 0 ? "No papers yet" : `${entry.paperCount} papers`}
-            href={`/${record.branchSlug}/${record.academicYear}/${entry.pattern}`}
-          />
-        ))}
-      </div>
-    </section>
+    <PageLayout>
+      <section className="space-y-6">
+        <Breadcrumbs
+          crumbs={[
+            { label: "Home", href: "/" },
+            { label: record.branch, href: `/${record.branchSlug}` },
+            { label: academicYear.toUpperCase(), href: `/${record.branchSlug}/${academicYear.toUpperCase()}` }
+          ]}
+        />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold text-slate-900">{record.branch}</h1>
+          <p className="text-base text-slate-600">{academicYear.toUpperCase()} patterns.</p>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {record.patterns.map((entry) => (
+            <Card
+              key={entry.pattern}
+              title={`Pattern ${entry.pattern}`}
+              subtitle={entry.paperCount === 0 ? "No papers yet" : `${entry.paperCount} papers`}
+              href={`/${record.branchSlug}/${record.academicYear}/${entry.pattern}`}
+            />
+          ))}
+        </div>
+      </section>
+    </PageLayout>
   );
 }

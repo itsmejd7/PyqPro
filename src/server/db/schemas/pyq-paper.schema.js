@@ -10,9 +10,11 @@ const papersJsonSchema = {
     "pattern",
     "subject",
     "subjectSlug",
+    "resourceType",
     "examType",
     "paperYear",
-    "fileId"
+    "fileId",
+    "accessType"
   ],
   properties: {
     branch: { bsonType: "string" },
@@ -21,6 +23,7 @@ const papersJsonSchema = {
     pattern: { enum: ["2012", "2015", "2019", "2024"] },
     subject: { bsonType: "string" },
     subjectSlug: { bsonType: "string" },
+    resourceType: { bsonType: "string" },
     examType: { enum: ["INSEM", "ENDSEM"] },
     paperMonth: { bsonType: "string" },
     paperYear: {
@@ -32,6 +35,7 @@ const papersJsonSchema = {
       bsonType: "string",
       pattern: "^[a-zA-Z0-9_-]{10,}$"
     },
+    accessType: { enum: ["FREE", "PREMIUM"] },
     createdAt: { bsonType: "date" },
     updatedAt: { bsonType: "date" }
   }
@@ -86,24 +90,51 @@ async function ensureCollection(db, collectionName, schema) {
   });
 }
 
+function normalizeIndexKey(key) {
+  return JSON.stringify(
+    Object.entries(key || {})
+      .sort(([a], [b]) => a.localeCompare(b))
+      .reduce((acc, [k, v]) => {
+        acc[k] = v;
+        return acc;
+      }, {})
+  );
+}
+
+async function ensureNamedIndex(collection, key, options) {
+  const name = options?.name;
+  if (!name) {
+    await collection.createIndex(key, options);
+    return;
+  }
+
+  const existing = await collection.indexes();
+  const match = existing.find((index) => index.name === name);
+  if (match && normalizeIndexKey(match.key) !== normalizeIndexKey(key)) {
+    await collection.dropIndex(name);
+  }
+
+  await collection.createIndex(key, options);
+}
+
 export async function ensurePyqSchema(db) {
   await ensureCollection(db, pyqPapersCollectionName, papersJsonSchema);
   await ensureCollection(db, pyqStructureCollectionName, structureJsonSchema);
 
-  await db.collection(pyqPapersCollectionName).createIndex(
-    { branchSlug: 1, academicYear: 1, pattern: 1, subjectSlug: 1, examType: 1, paperYear: -1 },
+  await ensureNamedIndex(db.collection(pyqPapersCollectionName),
+    { branchSlug: 1, academicYear: 1, pattern: 1, subjectSlug: 1, resourceType: 1, examType: 1, paperYear: -1 },
     { name: "papers_lookup_idx" }
   );
-  await db.collection(pyqPapersCollectionName).createIndex(
-    { branchSlug: 1, academicYear: 1, pattern: 1, subjectSlug: 1, paperYear: -1, paperMonth: 1 },
+  await ensureNamedIndex(db.collection(pyqPapersCollectionName),
+    { branchSlug: 1, academicYear: 1, pattern: 1, subjectSlug: 1, resourceType: 1, paperYear: -1, paperMonth: 1 },
     { name: "papers_subject_idx" }
   );
-  await db.collection(pyqPapersCollectionName).createIndex(
+  await ensureNamedIndex(db.collection(pyqPapersCollectionName),
     { fileId: 1 },
     { name: "file_id_unique_idx", unique: true }
   );
 
-  await db.collection(pyqStructureCollectionName).createIndex(
+  await ensureNamedIndex(db.collection(pyqStructureCollectionName),
     { branchSlug: 1, academicYear: 1 },
     { name: "structure_branch_year_unique_idx", unique: true }
   );

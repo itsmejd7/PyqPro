@@ -3,21 +3,11 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { MongoClient } = require("mongodb");
 
-const REQUIRED_COLUMNS = [
-  "branch",
-  "academicYear",
-  "pattern",
-  "subject",
-  "examType",
-  "paperMonth",
-  "paperYear",
-  "fileId"
-];
-
 const VALID_ACADEMIC_YEARS = new Set(["FE", "SE", "TE", "BE"]);
 const ACADEMIC_YEAR_ORDER = ["FE", "SE", "TE", "BE"];
 const VALID_PATTERNS = ["2012", "2015", "2019", "2024"];
 const VALID_EXAM_TYPES = new Set(["INSEM", "ENDSEM"]);
+const VALID_ACCESS_TYPES = new Set(["FREE", "PREMIUM"]);
 const FILE_ID_PATTERN = /^[a-zA-Z0-9_-]{10,}$/;
 
 function loadDotEnv() {
@@ -63,6 +53,18 @@ function normalizePattern(value) {
   const clean = normalizeText(value);
   const match = clean.match(/\b(2012|2015|2019|2024)\b/);
   return match ? match[1] : clean;
+}
+
+function normalizeAcademicYearValue(value) {
+  const clean = normalizeText(value).toUpperCase();
+  if (!clean) return "";
+
+  if (clean === "FE" || /FIRST\s*YEAR/.test(clean)) return "FE";
+  if (clean === "SE" || /SECOND\s*YEAR/.test(clean)) return "SE";
+  if (clean === "TE" || /THIRD\s*YEAR/.test(clean)) return "TE";
+  if (clean === "BE" || /FINAL\s*YEAR/.test(clean)) return "BE";
+
+  return clean;
 }
 
 function parseFileNameMetadata(fileNameInput) {
@@ -146,11 +148,17 @@ function parseCsv(content) {
   if (lines.length === 0) return [];
 
   const headers = splitCsvLine(lines[0]).map((header) => normalizeText(header));
-  for (const column of REQUIRED_COLUMNS) {
-    if (!headers.includes(column)) {
-      throw new Error(`Missing required CSV column: ${column}`);
-    }
-  }
+  const hasBranch = headers.includes("branch");
+  const hasYear = headers.includes("academicYear") || headers.includes("year");
+  const hasPattern = headers.includes("pattern");
+  const hasSubject = headers.includes("subject");
+  const hasFileId = headers.includes("fileId");
+
+  if (!hasBranch) throw new Error("Missing required CSV column: branch");
+  if (!hasYear) throw new Error("Missing required CSV column: academicYear or year");
+  if (!hasPattern) throw new Error("Missing required CSV column: pattern");
+  if (!hasSubject) throw new Error("Missing required CSV column: subject");
+  if (!hasFileId) throw new Error("Missing required CSV column: fileId");
 
   const rows = [];
   for (let i = 1; i < lines.length; i += 1) {
@@ -169,15 +177,30 @@ function normalizeRow(raw, index) {
     return null;
   }
 
-  const branch = normalizeText(raw.branch);
-  const academicYear = normalizeText(raw.academicYear || raw.year).toUpperCase();
-  const pattern = normalizePattern(raw.pattern);
-  const subject = normalizeText(raw.subject);
+  const rawBranch = normalizeText(raw.branch);
+  let academicYear = normalizeAcademicYearValue(raw.academicYear || raw.year);
+  let pattern = normalizePattern(raw.pattern);
+  let subject = normalizeText(raw.subject);
+  const resourceType = normalizeText(raw.resourceType).toUpperCase() || "PYQ";
 
   let examType = normalizeText(raw.examType).toUpperCase();
   let paperMonth = normalizeText(raw.paperMonth);
   let paperYear = Number.parseInt(normalizeText(raw.paperYear), 10);
   let fileId = extractFileId(raw.fileId);
+  const accessType = normalizeText(raw.accessType).toUpperCase() || "FREE";
+
+  const looksLikeMasterLegacyLayout =
+    !!normalizeText(raw.fileName) &&
+    !normalizeText(raw.examType) &&
+    !normalizeText(raw.paperMonth) &&
+    !normalizeText(raw.paperYear);
+
+  if (looksLikeMasterLegacyLayout) {
+    const fromFileName = parseFileNameMetadata(raw.fileName);
+    examType = fromFileName.examType;
+    paperMonth = fromFileName.paperMonth;
+    paperYear = fromFileName.paperYear;
+  }
 
   const looksLikeLegacySixColumn =
     !fileId &&
@@ -197,15 +220,41 @@ function normalizeRow(raw, index) {
     fileId = extractFileId(raw.fileId);
   }
 
-  if (!branch) throw new Error(`Row ${index + 2}: branch is required`);
-  if (!VALID_ACADEMIC_YEARS.has(academicYear)) throw new Error(`Row ${index + 2}: invalid academicYear "${raw.academicYear}"`);
-  if (!VALID_PATTERNS.includes(pattern)) throw new Error(`Row ${index + 2}: invalid pattern "${raw.pattern}"`);
+  const isFirstYearBranch = /^first\s*year$/i.test(rawBranch);
+  const yearLooksLikePattern = VALID_PATTERNS.includes(normalizePattern(raw.year));
+  const patternLooksLikeSubject = !!normalizeText(raw.pattern) && !VALID_PATTERNS.includes(normalizePattern(raw.pattern));
+  const isShiftedFirstYearRow = isFirstYearBranch && !VALID_ACADEMIC_YEARS.has(academicYear) && yearLooksLikePattern;
+
+  if (isShiftedFirstYearRow) {
+    academicYear = "FE";
+    pattern = normalizePattern(raw.year);
+    if (!subject && patternLooksLikeSubject) {
+      subject = normalizeText(raw.pattern);
+    }
+  }
+
+  // Supports updated master format where subject is shifted into pattern and subject can be empty.
+  if (!subject && normalizeText(raw.pattern)) {
+    subject = normalizeText(raw.pattern);
+  }
+  if (!VALID_PATTERNS.includes(pattern)) {
+    pattern = "2019";
+  }
+
+  if (!rawBranch) throw new Error(`Row ${index + 2}: branch is required`);
+  if (!VALID_ACADEMIC_YEARS.has(academicYear)) {
+    throw new Error(`Row ${index + 2}: invalid academicYear "${raw.academicYear || raw.year}"`);
+  }
   if (!subject) throw new Error(`Row ${index + 2}: subject is required`);
+  if (!resourceType) throw new Error(`Row ${index + 2}: resourceType is required`);
   if (!VALID_EXAM_TYPES.has(examType)) throw new Error(`Row ${index + 2}: invalid examType "${raw.examType}"`);
   if (!Number.isInteger(paperYear) || paperYear < 2000 || paperYear > 2100) {
     throw new Error(`Row ${index + 2}: invalid paperYear "${raw.paperYear}"`);
   }
   if (!FILE_ID_PATTERN.test(fileId)) throw new Error(`Row ${index + 2}: invalid fileId "${raw.fileId}"`);
+  if (!VALID_ACCESS_TYPES.has(accessType)) throw new Error(`Row ${index + 2}: invalid accessType "${raw.accessType}"`);
+
+  const branch = rawBranch;
 
   return {
     branch,
@@ -214,10 +263,12 @@ function normalizeRow(raw, index) {
     pattern,
     subject,
     subjectSlug: slugify(subject),
+    resourceType,
     examType,
     paperMonth,
     paperYear,
-    fileId
+    fileId,
+    accessType
   };
 }
 
@@ -305,7 +356,11 @@ async function loadRows(inputPath) {
 async function seed() {
   loadDotEnv();
 
-  const inputPath = process.argv[2] || "data/catalog/master-catalog.csv";
+  const defaultCatalogCandidates = ["tools/database/master-catalog.csv", "data/catalog/master-catalog.csv"];
+  const inputPath =
+    process.argv[2] ||
+    defaultCatalogCandidates.find((candidate) => fs.existsSync(path.resolve(process.cwd(), candidate))) ||
+    defaultCatalogCandidates[0];
   const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
   const dbName = process.env.MONGODB_DB_NAME || "pyqpro";
 

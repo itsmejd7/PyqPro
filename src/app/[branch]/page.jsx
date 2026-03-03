@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { Card } from "@/components/ui/card";
 import { getBranchStructure } from "@/server/repositories/pyq";
@@ -44,27 +45,29 @@ export default async function BranchPage({ params }) {
   const branchLabel = records[0].branch || formatSlug(branch);
 
   return (
-    <section className="section page-shell">
-      <Breadcrumbs
-        crumbs={[
-          { label: "Home", href: "/" },
-          { label: branchLabel, href: `/${branch}` }
-        ]}
-      />
-      <div className="section-head">
-        <h1>{branchLabel}</h1>
-        <p>Select your academic year.</p>
-      </div>
-      <div className="grid">
-        {records.map((record) => (
-          <Card
-            key={`${record.branchSlug}-${record.academicYear}`}
-            title={record.academicYear}
-            subtitle={`${record.patterns.length} patterns`}
-            href={`/${record.branchSlug}/${record.academicYear}`}
-          />
-        ))}
-      </div>
-    </section>
+    <PageLayout>
+      <section className="space-y-6">
+        <Breadcrumbs
+          crumbs={[
+            { label: "Home", href: "/" },
+            { label: branchLabel, href: `/${branch}` }
+          ]}
+        />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold text-slate-900">{branchLabel}</h1>
+          <p className="text-base text-slate-600">Select your academic year.</p>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {records.map((record) => (
+            <Card
+              key={`${record.branchSlug}-${record.academicYear}`}
+              title={record.academicYear}
+              subtitle={`${record.patterns.length} patterns`}
+              href={`/${record.branchSlug}/${record.academicYear}`}
+            />
+          ))}
+        </div>
+      </section>
+    </PageLayout>
   );
 }

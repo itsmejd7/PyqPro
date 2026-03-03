@@ -1,13 +1,19 @@
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/components/ads/ad-slot";
+import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { PublicDrivePdfViewer } from "@/components/pdf/public-drive-pdf-viewer";
+import { AD_POSITIONS } from "@/lib/ads-config";
+import { listAccessibleAccessTypes } from "@/lib/access-control";
 import { getYearStructure, listPapers } from "@/server/repositories/pyq";
+import { getViewerAccess } from "@/server/auth/viewer-access";
 import { buildNotFoundMetadata, buildPdfMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
 
 export async function generateMetadata({ params }) {
   const { branch, academicYear, pattern, subject, fileId } = await params;
+  const viewerAccess = await getViewerAccess();
   const normalizedYear = academicYear.toUpperCase();
   const record = await getYearStructure(branch, normalizedYear);
 
@@ -29,7 +35,8 @@ export async function generateMetadata({ params }) {
     branchSlug: record.branchSlug,
     academicYear: normalizedYear,
     pattern,
-    subjectSlug: subject
+    subjectSlug: subject,
+    allowedAccessTypes: listAccessibleAccessTypes(viewerAccess.plan)
   });
 
   const paper = papers.find((entry) => entry.fileId === fileId);
@@ -53,6 +60,7 @@ export async function generateMetadata({ params }) {
 
 export default async function SubjectPdfPage({ params }) {
   const { branch, academicYear, pattern, subject, fileId } = await params;
+  const viewerAccess = await getViewerAccess();
   const record = await getYearStructure(branch, academicYear.toUpperCase());
   if (!record) notFound();
 
@@ -63,34 +71,45 @@ export default async function SubjectPdfPage({ params }) {
   if (!subjectEntry) notFound();
 
   const papers = await listPapers({
-    branchSlug: branch,
+    branchSlug: record.branchSlug,
     academicYear: academicYear.toUpperCase(),
     pattern,
-    subjectSlug: subject
+    subjectSlug: subject,
+    allowedAccessTypes: listAccessibleAccessTypes(viewerAccess.plan)
   });
 
   const paper = papers.find((entry) => entry.fileId === fileId);
   if (!paper) notFound();
 
   return (
-    <section className="section page-shell">
-      <Breadcrumbs
-        crumbs={[
-          { label: "Home", href: "/" },
-          { label: record.branch, href: `/${record.branchSlug}` },
-          { label: record.academicYear, href: `/${record.branchSlug}/${record.academicYear}` },
-          { label: `Pattern ${pattern}`, href: `/${record.branchSlug}/${record.academicYear}/${pattern}` },
-          { label: subjectEntry.subject, href: `/${record.branchSlug}/${record.academicYear}/${pattern}/${subject}` },
-          { label: "PDF Viewer", href: `/${record.branchSlug}/${record.academicYear}/${pattern}/${subject}/pdf/${fileId}` }
-        ]}
-      />
-      <div className="section-head">
-        <h1>{subjectEntry.subject}</h1>
-        <p>
-          {paper.examType} {paper.paperMonth} {paper.paperYear}
-        </p>
-      </div>
-      <PublicDrivePdfViewer fileId={fileId} />
-    </section>
+    <PageLayout>
+      <section className="space-y-6">
+        <Breadcrumbs
+          crumbs={[
+            { label: "Home", href: "/" },
+            { label: record.branch, href: `/${record.branchSlug}` },
+            { label: record.academicYear, href: `/${record.branchSlug}/${record.academicYear}` },
+            { label: `Pattern ${pattern}`, href: `/${record.branchSlug}/${record.academicYear}/${pattern}` },
+            { label: subjectEntry.subject, href: `/${record.branchSlug}/${record.academicYear}/${pattern}/${subject}` },
+            { label: "PDF Viewer", href: `/${record.branchSlug}/${record.academicYear}/${pattern}/${subject}/pdf/${fileId}` }
+          ]}
+        />
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold text-slate-900">{subjectEntry.subject}</h1>
+          <p className="text-base text-slate-600">
+            {paper.examType} {paper.paperMonth} {paper.paperYear}
+          </p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+          <PublicDrivePdfViewer fileId={fileId} />
+          <div className="hidden lg:block">
+            <AdSlot position={AD_POSITIONS.PDF_DESKTOP_SIDEBAR} viewerPlan={viewerAccess.plan} />
+          </div>
+        </div>
+        <div className="lg:hidden">
+          <AdSlot position={AD_POSITIONS.PDF_MOBILE_BOTTOM_BANNER} viewerPlan={viewerAccess.plan} />
+        </div>
+      </section>
+    </PageLayout>
   );
 }
