@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AdSlot, AD_POSITIONS } from "@/components/ads/AdSlot";
+import Image from "next/image";
+import { AdSlot, AD_POSITIONS } from "@/components/ads/ad-slot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Card } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
@@ -37,25 +38,20 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <svg viewBox="0 0 640 420" className="block w-full" role="img" aria-label="Academic illustration">
-              <defs>
-                <linearGradient id="heroBg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#eef2ff" />
-                  <stop offset="100%" stopColor="#e0f2fe" />
-                </linearGradient>
-              </defs>
-              <rect x="0" y="0" width="640" height="420" rx="24" fill="url(#heroBg)" />
-              <rect x="86" y="84" width="468" height="250" rx="16" fill="#ffffff" stroke="#e2e8f0" />
-              <rect x="118" y="122" width="190" height="18" rx="9" fill="#4f46e5" />
-              <rect x="118" y="154" width="404" height="12" rx="6" fill="#cbd5e1" />
-              <rect x="118" y="176" width="354" height="12" rx="6" fill="#cbd5e1" />
-              <rect x="118" y="210" width="124" height="28" rx="14" fill="#6366f1" />
-              <rect x="118" y="254" width="130" height="12" rx="6" fill="#94a3b8" />
-              <rect x="118" y="276" width="194" height="12" rx="6" fill="#94a3b8" />
-              <circle cx="472" cy="252" r="56" fill="#e0e7ff" />
-              <path d="M448 252h48M472 228v48" stroke="#4338ca" strokeWidth="8" strokeLinecap="round" />
-            </svg>
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div
+              className="w-full overflow-hidden rounded-lg"
+              style={{ position: "relative", aspectRatio: "16 / 10", maxHeight: "420px" }}
+            >
+              <Image
+                src="/images/hero-banner-20260304.png"
+                alt="PYQPRO hero banner showing SPPU previous year papers"
+                fill
+                priority
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                style={{ objectFit: "contain", objectPosition: "center" }}
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -101,3 +97,4 @@ export default async function HomePage() {
     </PageLayout>
   );
 }
+

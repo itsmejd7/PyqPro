@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AdSlot, AD_POSITIONS } from "@/components/ads/AdSlot";
+import { AdSlot, AD_POSITIONS } from "@/components/ads/ad-slot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { PublicDrivePdfViewer } from "@/components/pdf/public-drive-pdf-viewer";
@@ -112,3 +112,4 @@ export default async function SubjectPdfPage({ params }) {
     </PageLayout>
   );
 }
+

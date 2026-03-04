@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { AdSlot, AD_POSITIONS } from "@/components/ads/AdSlot";
+import { AdSlot, AD_POSITIONS } from "@/components/ads/ad-slot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { Button } from "@/components/ui/button";
@@ -171,3 +171,4 @@ export default async function SubjectPage({ params, searchParams }) {
     </PageLayout>
   );
 }
+

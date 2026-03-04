@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:seed": "node tools/database/seed-catalog.js",
-    "db:verify-pdfs": "node tools/database/verify-pdf-links.js"
+    "db:seed": "node tools/database/seed-catalog.js"
   },
   "dependencies": {
     "mongodb": "^6.21.0",
