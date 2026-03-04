@@ -1,7 +1,6 @@
 import "@/app/globals.css";
 import { Space_Grotesk, Hind } from "next/font/google";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
-import { AdNetworkScript } from "@/components/ads/ad-network-script";
 import { EducationalOrganizationJsonLd } from "@/components/json-ld/educational-organization";
 import { Navbar } from "@/components/navigation/navbar";
 import { siteConfig } from "@/lib/site-config";
@@ -56,7 +55,6 @@ export default function RootLayout({ children }) {
       <body className={`${fontDisplay.variable} ${fontBody.variable} min-h-screen bg-slate-50 text-base text-slate-600`}>
         <EducationalOrganizationJsonLd />
         <GoogleAnalytics />
-        <AdNetworkScript />
         <Navbar />
         <main>{children}</main>
         <footer className="border-t border-slate-200 bg-white py-8">

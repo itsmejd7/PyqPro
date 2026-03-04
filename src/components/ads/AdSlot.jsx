@@ -1,19 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
-export const AD_POSITIONS = {
-  HOMEPAGE_HERO_BOTTOM: "hero-bottom",
-  HOMEPAGE_BRANCHES_MIDDLE: "branches-middle",
-  HOMEPAGE_FOOTER: "footer",
-  SUBJECT_TOP: "subject-top",
-  SUBJECT_MIDDLE: "subject-middle",
-  SUBJECT_BOTTOM: "subject-bottom",
-  PDF_MOBILE_BOTTOM_BANNER: "pdf-mobile-bottom-banner",
-  PDF_DESKTOP_SIDEBAR: "pdf-desktop-sidebar"
-};
-
-const ADS_ENABLED = process.env.NEXT_PUBLIC_ADS_ENABLED === "true";
+import { useEffect, useMemo, useRef } from "react";
+import { adTagConfig, AD_POSITIONS } from "@/components/ads/ad-config";
 
 const POSITION_STYLE_MAP = {
   [AD_POSITIONS.HOMEPAGE_HERO_BOTTOM]: "min-h-[90px]",
@@ -26,41 +14,51 @@ const POSITION_STYLE_MAP = {
   [AD_POSITIONS.PDF_DESKTOP_SIDEBAR]: "min-h-[300px]"
 };
 
-export function AdSlot({ position, className = "", enabled = ADS_ENABLED }) {
-  const slotRef = useRef(null);
+export { AD_POSITIONS };
+
+export function AdSlot({ position, className = "", enabled = adTagConfig.enabled }) {
+  const injectedScriptsRef = useRef([]);
   const minHeightClass = POSITION_STYLE_MAP[position] || "min-h-[90px]";
+  const configuredTags = useMemo(() => (adTagConfig.tags || []).filter((tag) => tag?.scriptSrc), []);
+  const isConfigured = configuredTags.length > 0;
 
   useEffect(() => {
-    if (!enabled || !slotRef.current) return;
+    if (!enabled || !isConfigured) return;
 
-    const script = document.createElement("script");
-    script.dataset.zone = "10681551";
-    script.src = "https://nap5k.com/tag.min.js";
-    script.async = true;
+    const target = [document.documentElement, document.body].filter(Boolean).pop();
+    if (!target) return;
 
-    slotRef.current.innerHTML = "";
-    slotRef.current.appendChild(script);
+    const injectedScripts = [];
+
+    configuredTags.forEach((tag) => {
+      const script = document.createElement("script");
+      script.src = tag.scriptSrc;
+      script.async = true;
+      Object.entries(tag.attributes || {}).forEach(([key, value]) => {
+        if (value) {
+          script.setAttribute(key, value);
+        }
+      });
+
+      target.appendChild(script);
+      injectedScripts.push(script);
+    });
+    injectedScriptsRef.current = injectedScripts;
 
     return () => {
-      slotRef.current?.replaceChildren();
+      injectedScriptsRef.current.forEach((script) => script.remove());
+      injectedScriptsRef.current = [];
     };
-  }, [enabled, position]);
+  }, [enabled, isConfigured, position, configuredTags]);
 
-  if (!enabled) return null;
+  if (!enabled || !isConfigured) return null;
 
   return (
-    <aside
-      aria-label={`Ad slot: ${position}`}
-      className={`mx-auto w-full max-w-full rounded-xl border border-dashed border-slate-300 bg-slate-50/70 p-3 sm:p-4 ${className}`.trim()}
-    >
+    <aside aria-label={`Ad slot: ${position}`} className={`mx-auto w-full max-w-full ${className}`.trim()}>
       <div
-        ref={slotRef}
         data-ad-slot={position}
-        className={`flex w-full items-center justify-center rounded-lg bg-white px-3 py-4 text-center text-sm font-medium text-slate-500 ${minHeightClass}`.trim()}
-      >
-        {/* Ad network tag/script for this position will be inserted here later. */}
-        Ad space
-      </div>
+        className={`w-full ${minHeightClass}`.trim()}
+      />
     </aside>
   );
 }

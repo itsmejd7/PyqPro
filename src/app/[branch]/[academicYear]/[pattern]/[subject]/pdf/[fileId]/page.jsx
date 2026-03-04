@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
-import { AdSlot } from "@/components/ads/ad-slot";
+import { AdSlot, AD_POSITIONS } from "@/components/ads/AdSlot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { PublicDrivePdfViewer } from "@/components/pdf/public-drive-pdf-viewer";
-import { AD_POSITIONS } from "@/lib/ads-config";
 import { listAccessibleAccessTypes } from "@/lib/access-control";
 import { getYearStructure, listPapers } from "@/server/repositories/pyq";
 import { getViewerAccess } from "@/server/auth/viewer-access";
@@ -103,11 +102,11 @@ export default async function SubjectPdfPage({ params }) {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
           <PublicDrivePdfViewer fileId={fileId} />
           <div className="hidden lg:block">
-            <AdSlot position={AD_POSITIONS.PDF_DESKTOP_SIDEBAR} viewerPlan={viewerAccess.plan} />
+            <AdSlot position={AD_POSITIONS.PDF_DESKTOP_SIDEBAR} />
           </div>
         </div>
         <div className="lg:hidden">
-          <AdSlot position={AD_POSITIONS.PDF_MOBILE_BOTTOM_BANNER} viewerPlan={viewerAccess.plan} />
+          <AdSlot position={AD_POSITIONS.PDF_MOBILE_BOTTOM_BANNER} />
         </div>
       </section>
     </PageLayout>
