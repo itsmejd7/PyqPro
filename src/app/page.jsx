@@ -1,18 +1,14 @@
 import Link from "next/link";
-import { AdSlot } from "@/components/ads/ad-slot";
+import { AdSlot, AD_POSITIONS } from "@/components/ads/AdSlot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Card } from "@/components/ui/card";
 import { buttonClassName } from "@/components/ui/button";
-import { AD_POSITIONS } from "@/lib/ads-config";
-import { VIEWER_PLAN } from "@/lib/access-control";
-import { getViewerAccess } from "@/server/auth/viewer-access";
 import { listBranches } from "@/server/repositories/pyq";
 
 export const revalidate = 300;
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const viewerAccess = await getViewerAccess();
   const branches = await listBranches();
   const firstYearBranch = branches.find((branch) => branch.branchSlug === "first-year");
   const splitIndex = Math.ceil(branches.length / 2);
@@ -63,7 +59,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      <AdSlot position={AD_POSITIONS.HOME_BELOW_HERO} viewerPlan={viewerAccess.plan || VIEWER_PLAN.FREE} />
+      <AdSlot position={AD_POSITIONS.HOMEPAGE_HERO_BOTTOM} />
 
       <section id="branches" className="space-y-6">
         <div className="space-y-2">
@@ -82,7 +78,7 @@ export default async function HomePage() {
                 />
               ))}
             </div>
-            {secondGrid.length > 0 ? <AdSlot position={AD_POSITIONS.HOME_BETWEEN_BRANCH_GRID} viewerPlan={viewerAccess.plan || VIEWER_PLAN.FREE} /> : null}
+            {secondGrid.length > 0 ? <AdSlot position={AD_POSITIONS.HOMEPAGE_BRANCHES_MIDDLE} /> : null}
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {secondGrid.map((branch) => (
                 <Card
@@ -101,6 +97,7 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+      <AdSlot position={AD_POSITIONS.HOMEPAGE_FOOTER} />
     </PageLayout>
   );
 }

@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { AdSlot } from "@/components/ads/ad-slot";
+import { AdSlot, AD_POSITIONS } from "@/components/ads/AdSlot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
 import { Button } from "@/components/ui/button";
-import { AD_POSITIONS } from "@/lib/ads-config";
 import { listAccessibleAccessTypes } from "@/lib/access-control";
 import { formatResourceTypeBadge, formatResourceTypeLabel, normalizeResourceType, sortResourceTypes } from "@/lib/resource-types";
 import { getYearStructure, listPapers, listResourceTypesForSubject } from "@/server/repositories/pyq";
@@ -141,7 +140,7 @@ export default async function SubjectPage({ params, searchParams }) {
             );
           })}
         </div>
-        <AdSlot position={AD_POSITIONS.SUBJECT_BELOW_TITLE} viewerPlan={viewerAccess.plan} />
+        <AdSlot position={AD_POSITIONS.SUBJECT_TOP} />
 
         <div className="space-y-6">
           {papers.length === 0 ? (
@@ -163,10 +162,10 @@ export default async function SubjectPage({ params, searchParams }) {
                   <Button href={`/${record.branchSlug}/${record.academicYear}/${pattern}/${subject}/pdf/${paper.fileId}`}>Open PDF</Button>
                 </div>
               </div>
-              {index === 5 ? <AdSlot position={AD_POSITIONS.SUBJECT_AFTER_LIST_6} viewerPlan={viewerAccess.plan} /> : null}
+              {index === 5 ? <AdSlot position={AD_POSITIONS.SUBJECT_MIDDLE} /> : null}
             </div>
           ))}
-          <AdSlot position={AD_POSITIONS.SUBJECT_BEFORE_FOOTER} viewerPlan={viewerAccess.plan} />
+          <AdSlot position={AD_POSITIONS.SUBJECT_BOTTOM} />
         </div>
       </section>
     </PageLayout>
