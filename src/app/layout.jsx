@@ -1,6 +1,6 @@
 import "@/app/globals.css";
 import { Space_Grotesk, Hind } from "next/font/google";
-import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import Script from "next/script";
 import { EducationalOrganizationJsonLd } from "@/components/json-ld/educational-organization";
 import { Navbar } from "@/components/navigation/navbar";
 import { siteConfig } from "@/lib/site-config";
@@ -52,9 +52,22 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en-IN">
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-HH54H2P7BG"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-HH54H2P7BG');
+`}
+        </Script>
+      </head>
       <body className={`${fontDisplay.variable} ${fontBody.variable} min-h-screen bg-slate-50 text-base text-slate-600`}>
         <EducationalOrganizationJsonLd />
-        <GoogleAnalytics />
         <Navbar />
         <main>{children}</main>
         <footer className="border-t border-slate-200 bg-white py-8">
