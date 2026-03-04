@@ -1,5 +1,3 @@
-self.options = {
-    "domain": "5gvci.com",
     "zoneId": 10681538
 }
 self.lary = ""
