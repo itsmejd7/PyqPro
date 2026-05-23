@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { AdSlot, AD_POSITIONS } from "@/components/ads/ad-slot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
+import { BreadcrumbList } from "@/components/json-ld/breadcrumb-list";
 import { PublicDrivePdfViewer } from "@/components/pdf/public-drive-pdf-viewer";
 import { listAccessibleAccessTypes } from "@/lib/access-control";
 import { getYearStructure, listPapers } from "@/server/repositories/pyq";
@@ -83,6 +84,16 @@ export default async function SubjectPdfPage({ params }) {
   return (
     <PageLayout>
       <section className="space-y-6">
+        <BreadcrumbList
+          items={[
+            { label: "Home", href: "/" },
+            { label: record.branch, href: `/${record.branchSlug}` },
+            { label: record.academicYear, href: `/${record.branchSlug}/${record.academicYear}` },
+            { label: `Pattern ${pattern}`, href: `/${record.branchSlug}/${record.academicYear}/${pattern}` },
+            { label: subjectEntry.subject, href: `/${record.branchSlug}/${record.academicYear}/${pattern}/${subjectEntry.subjectSlug}` },
+            { label: "PDF Viewer", href: `/${record.branchSlug}/${record.academicYear}/${pattern}/${subjectEntry.subjectSlug}/pdf/${fileId}` }
+          ]}
+        />
         <Breadcrumbs
           crumbs={[
             { label: "Home", href: "/" },

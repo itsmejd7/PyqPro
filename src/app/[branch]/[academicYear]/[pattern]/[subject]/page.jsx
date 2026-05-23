@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AdSlot, AD_POSITIONS } from "@/components/ads/ad-slot";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
+import { BreadcrumbList } from "@/components/json-ld/breadcrumb-list";
 import { Button } from "@/components/ui/button";
 import { listAccessibleAccessTypes } from "@/lib/access-control";
 import { formatResourceTypeBadge, formatResourceTypeLabel, normalizeResourceType, sortResourceTypes } from "@/lib/resource-types";
@@ -112,6 +113,15 @@ export default async function SubjectPage({ params, searchParams }) {
   return (
     <PageLayout>
       <section className="space-y-6">
+        <BreadcrumbList
+          items={[
+            { label: "Home", href: "/" },
+            { label: record.branch, href: `/${record.branchSlug}` },
+            { label: record.academicYear, href: `/${record.branchSlug}/${record.academicYear}` },
+            { label: `Pattern ${pattern}`, href: `/${record.branchSlug}/${record.academicYear}/${pattern}` },
+            { label: subjectEntry.subject, href: `/${record.branchSlug}/${record.academicYear}/${pattern}/${subject}` }
+          ]}
+        />
         <Breadcrumbs
           crumbs={[
             { label: "Home", href: "/" },
@@ -122,8 +132,15 @@ export default async function SubjectPage({ params, searchParams }) {
           ]}
         />
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold text-slate-900">{subjectEntry.subject}</h1>
+          <h1 className="text-3xl font-semibold text-slate-900">{subjectEntry.subject} SPPU PYQ - {record.branch} {record.academicYear} Pattern {record.pattern}</h1>
           <p className="text-base text-slate-600">{record.branch} | {record.academicYear} | Pattern {pattern}</p>
+          <p className="mt-4 text-base leading-relaxed text-slate-600">
+            Find all {subjectEntry.subject} previous year question papers for Savitribai Phule Pune University (SPPU) {record.branch} {record.academicYear} Pattern {pattern}.
+            Access complete collection of SPPU PYQ for {subjectEntry.subject} including end-semester exam papers, make-up papers, and supplementary exam papers from previous years.
+            These previous year question papers help you understand exam patterns, important topics, and question formats for your upcoming {subjectEntry.subject} examination.
+            Browse through solved and unsolved SPPU exam papers available in PDF format. Each question paper includes details of the exam month and year,
+            making it easy to find the specific SPPU PYQ you need for thorough exam preparation and practice.
+          </p>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           {sortedResourceTypes.map((resourceType) => {

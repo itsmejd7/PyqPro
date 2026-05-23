@@ -2,6 +2,7 @@ import "@/app/globals.css";
 import { Space_Grotesk, Hind } from "next/font/google";
 import Script from "next/script";
 import { EducationalOrganizationJsonLd } from "@/components/json-ld/educational-organization";
+import { OrganizationJsonLd } from "@/components/json-ld/organization";
 import { Navbar } from "@/components/navigation/navbar";
 import { siteConfig } from "@/lib/site-config";
 
@@ -18,11 +19,9 @@ const fontBody = Hind({
 
 export const metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: {
-    default: "PYQPRO | SPPU PYQs, Syllabus, Notes",
-    template: "%s | PYQPRO"
-  },
+  title: "PYQPRO | SPPU PYQs, Syllabus, Notes",
   description: siteConfig.description,
+  applicationName: "PYQPRO",
   keywords: [
     "SPPU previous year question papers",
     "engineering PYQ",
@@ -68,6 +67,7 @@ gtag('config', 'G-HH54H2P7BG');
       </head>
       <body className={`${fontDisplay.variable} ${fontBody.variable} min-h-screen bg-slate-50 text-base text-slate-600`}>
         <EducationalOrganizationJsonLd />
+        <OrganizationJsonLd />
         <Navbar />
         <main>{children}</main>
         <footer className="border-t border-slate-200 bg-white py-8">
@@ -79,3 +79,6 @@ gtag('config', 'G-HH54H2P7BG');
     </html>
   );
 }
+
+
+

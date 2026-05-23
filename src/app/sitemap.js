@@ -12,6 +12,15 @@ export default async function sitemap() {
     priority: 0.8
   }));
 
+  // Pattern pages: /branch/academicYear/pattern
+  const patternUrls = subjects.reduce((urls, item) => {
+    const patternUrl = `${base}/${item.branchSlug}/${item.academicYear}/${item.pattern}`;
+    if (!urls.find((u) => u.url === patternUrl)) {
+      urls.push({ url: patternUrl, changeFrequency: "weekly", priority: 0.75 });
+    }
+    return urls;
+  }, []);
+
   const subjectUrls = subjects.map((item) => ({
     url: `${base}/${item.branchSlug}/${item.academicYear}/${item.pattern}/${item.subjectSlug}`,
     changeFrequency: "weekly",
@@ -25,12 +34,9 @@ export default async function sitemap() {
   }));
 
   return [
-    {
-      url: base,
-      changeFrequency: "daily",
-      priority: 1
-    },
+    { url: base, changeFrequency: "daily", priority: 1 },
     ...branchUrls,
+    ...patternUrls,
     ...subjectLandingUrls,
     ...subjectUrls
   ];

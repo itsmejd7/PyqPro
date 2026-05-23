@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageLayout } from "@/components/layout/page-layout";
 import { Breadcrumbs } from "@/components/navigation/breadcrumbs";
+import { BreadcrumbList } from "@/components/json-ld/breadcrumb-list";
 import { Button } from "@/components/ui/button";
 import { formatSlug } from "@/lib/format";
 import { buildNotFoundMetadata, buildSubjectLandingMetadata } from "@/lib/seo";
@@ -37,6 +38,12 @@ export default async function SubjectLandingPage({ params }) {
   return (
     <PageLayout>
       <section className="space-y-6">
+        <BreadcrumbList
+          items={[
+            { label: "Home", href: "/" },
+            { label: subjectName, href: `/subject/${slug}` }
+          ]}
+        />
         <Breadcrumbs
           crumbs={[
             { label: "Home", href: "/" },
@@ -67,3 +74,5 @@ export default async function SubjectLandingPage({ params }) {
     </PageLayout>
   );
 }
+
+
